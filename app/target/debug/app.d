@@ -1,0 +1,1 @@
+/Users/timlecou/Documents/projects_42/github/npuzzle/app/target/debug/app: /Users/timlecou/Documents/projects_42/github/npuzzle/app/src/main.rs /Users/timlecou/Documents/projects_42/github/npuzzle/app/src/npuzzle.rs /Users/timlecou/Documents/projects_42/github/npuzzle/app/src/npuzzle_error/mod.rs /Users/timlecou/Documents/projects_42/github/npuzzle/app/src/utils/mod.rs
