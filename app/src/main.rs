@@ -6,8 +6,8 @@ mod npuzzle;
 fn main() -> Result<()> {
     let args: Vec<String> = env::args().collect();
     let puzzle: NPuzzle =  match NPuzzle::new(&args) {
-        Some(v) => v,
-        None => { bail!("fail to build puzzle") }
+        Ok(v) => v,
+        Err(error) => { bail!("Fail to build puzzle: {}", error) }
     };
 
     // println!("{}", puzzle.size);

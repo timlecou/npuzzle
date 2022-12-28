@@ -1,5 +1,6 @@
-use anyhow::{ Result };
+// use anyhow::{ Result };
 use npuzzle_error::NPuzzleError;
+use std::error::Error;
 
 #[path = "../npuzzle_error/mod.rs"]
 mod npuzzle_error;
