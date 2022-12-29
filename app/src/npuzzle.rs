@@ -1,9 +1,6 @@
 use std::fs::File;
 use std::io::{prelude::*, BufReader};
 use utils::check_puzzle_conformity;
-// use anyhow::{ Result };
-use std::error::Error;
-use npuzzle_error::NPuzzleError;
 
 #[path = "npuzzle_error/mod.rs"]
 mod npuzzle_error;
@@ -14,7 +11,7 @@ mod utils;
 #[derive(Debug)]
 pub struct NPuzzle {
     size: usize,
-    puzzle: Vec<Vec<u8>>
+    puzzle: Vec<Vec<u16>>
 }
 
 impl NPuzzle {
@@ -24,14 +21,14 @@ impl NPuzzle {
         }
         let file = File::open(&args[1])?;
         let reader = BufReader::new(file);
-        let mut puzzle: Vec<Vec<u8>> = Vec::new();
+        let mut puzzle: Vec<Vec<u16>> = Vec::new();
         let mut size: usize = 0;
 
         for line in reader.lines() {
             match line {
                 Ok(v) => {
                     if v.len() > 0 {
-                        let numbers: Vec<u8> = v
+                        let numbers: Vec<u16> = v
                             .split_whitespace()
                             .filter_map(|w| w.parse().ok())
                             .collect();
@@ -53,11 +50,11 @@ impl NPuzzle {
         })
     }
 
-    pub fn get_size(&self) -> usize {
+    pub fn _get_size(&self) -> usize {
         self.size
     }
 
-    pub fn get_puzzle(&self) -> Vec<Vec<u8>> {
+    pub fn _get_puzzle(&self) -> Vec<Vec<u16>> {
         self.puzzle.clone()
     }
 }
