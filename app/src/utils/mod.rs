@@ -1,36 +1,24 @@
-use npuzzle_error::NPuzzleError;
-// use std::error::Error;
+use anyhow::{ Result, bail };
 
-#[path = "../npuzzle_error/mod.rs"]
-mod npuzzle_error;
-
-pub fn check_puzzle_conformity(puzzle: &Vec<Vec<u16>>, size: usize) -> Result<(), NPuzzleError> {
-    let mut big_vec: Vec<u16> = Vec::new();
-    let mut i: usize = 0;
-    let mut j: u16 = 0;
+pub fn check_puzzle_conformity(puzzle: &Vec<u16>, size: usize) -> Result<()> {
+    let mut i: u16 = 0;
     
-    if size != puzzle.len() {
-        return Err(NPuzzleError::WrongPuzzleHeight);
-    }
-    for v in puzzle.clone() {
-        if size != v.len() {
-            println!("size {}", size);
-            println!("v.len() {}", v.len());
-            return Err(NPuzzleError::WrongPuzzleWidth);
-        }
-        big_vec.extend(v);
+    if size * size != puzzle.len() {
+        bail!("\n\nSize provided doesn't match the puzzle amount of numbers\n\nsize provided: {}\namount of number: {}\n\n", size, puzzle.len());
     }
 
-    if size * size != big_vec.len() {
-        return Err(NPuzzleError::WrongPuzzleSize);
-    }
-
-    while i < big_vec.len() {
-        if big_vec.contains(&j) == false {
-            return Err(NPuzzleError::InvalidNumberInPuzzle);
+    while (i as usize) < puzzle.len() {
+        if puzzle.contains(&i) == false {
+            bail!("Missing number in puzzle\n\nMissing: {}\n\n", i);
         }
         i += 1;
-        j += 1;
     }
     Ok(())
+}
+
+pub fn print_vec_slice(sl: &[u16]) {
+    for nb in sl {
+        print!("{} ", nb)
+    }
+    print!("\n")
 }
