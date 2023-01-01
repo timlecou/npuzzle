@@ -7,4 +7,5 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.68"
+rand = "0.8.5"
 thiserror = "1.0.38"

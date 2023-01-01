@@ -1,3 +1,4 @@
+
 use std::fs::File;
 use std::io::{prelude::*, BufReader};
 use utils::{
@@ -5,7 +6,7 @@ use utils::{
     print_vec_slice
 };
 use state::State;
-use std::cmp::Ordering;
+use rand::thread_rng;
 use anyhow::{Result, bail};
 
 #[path = "utils/mod.rs"]
@@ -88,7 +89,7 @@ impl NPuzzle {
     }
 
     pub fn has_reached_goal(&self) -> bool {
-        let matching = self.puzzle.clone().iter().zip(&self.goal.clone()).filter(|&(a, b)| a == b).count();
+        let matching = self.puzzle.iter().zip(&self.goal).filter(|&(a, b)| a == b).count();
         if matching == self.number_amount {
             true
         }
@@ -97,7 +98,7 @@ impl NPuzzle {
         }
     }
 
-    pub fn get_possible_moves(&self) -> (Vec<i16>, usize) {
+    pub fn get_possible_moves(&self) -> (&Vec<i16>, &usize) {
         let mut moves: Vec<i16> = Vec::new();
         let possibilities: [i16; 4] = [1, -1, self.size as i16, self.size as i16 * -1];
         let idx: usize = self.puzzle.iter().position(|&nb| nb == 0).unwrap();
@@ -115,23 +116,23 @@ impl NPuzzle {
                 moves.push(p);
             }
         }
-        (moves, idx)
+        (&moves, &idx)
     }
 
-    pub fn compute_next_states(&self) -> Result<Vec<State>> {
+    pub fn compute_next_states(&self) -> Result<&Vec<State>> {
         let mut next_states: Vec<State> = Vec::new();
         let (possible_moves, idx) = self.get_possible_moves();
         
         let mut tmp: u16;
 
         for mv in possible_moves {
-            let mut state: State = State::new(self.size, &self.puzzle)?;
-            tmp = state.puzzle[(idx as i16 + mv) as usize];
-            state.puzzle[(idx as i16 + mv) as usize] = state.puzzle[idx];
-            state.puzzle[idx] = tmp;
+            let mut state: State = State::new(self.size, &self.puzzle, *mv)?;
+            tmp = state.puzzle[(*idx as i16 + mv) as usize];
+            state.puzzle[(*idx as i16 + mv) as usize] = state.puzzle[*idx];
+            state.puzzle[*idx] = tmp;
             next_states.push(state);
         }
-        Ok(next_states)
+        Ok(&next_states)
     }
 
     pub fn manhattan_distance(&self, state: &mut State) {
@@ -160,13 +161,19 @@ impl NPuzzle {
 
     fn huristic_next_state(&mut self) -> Result<()> {
         /* get the possible next states */
-        let mut next_states: Vec<State> = self.compute_next_states()?;
-
-        for mut state in &mut next_states {
+        let mut next_states: &Vec<State> = self.compute_next_states()?;
+        let mut rng = thread_rng();
+        
+        for mut state in next_states {
             self.manhattan_distance(&mut state);
         }
         next_states.sort();
-        self.puzzle = next_states[0].puzzle.clone();
+        next_states.drain(next_states.iter().filter(|&n| n.distance == next_states[0].distance).count()..next_states.len());
+
+        let idx: usize = self.puzzle.iter().position(|&nb| nb == 0).unwrap();
+        let tmp: u16 = self.puzzle[(idx as i16 + next_states[0].mov) as usize];
+        self.puzzle[(idx as i16 + next_states[0].mov) as usize] = self.puzzle[idx];
+        self.puzzle[idx] = tmp;
         Ok(())
     }
 

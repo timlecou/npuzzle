@@ -6,16 +6,18 @@ pub struct State {
     pub size: usize,
     pub number_amount: usize,
     pub puzzle: Vec<u16>,
-    pub distance: u32
+    pub distance: u32,
+    pub mov: i16
 }
 
 impl State {
-    pub fn new(size: usize, puzzle: &Vec<u16>) -> Result<State> {
+    pub fn new(size: usize, puzzle: &Vec<u16>, mv: i16) -> Result<State> {
         Ok(Self {
             size: size,
             number_amount: size * size,
             puzzle: puzzle.to_vec(),
-            distance: 0
+            distance: 0,
+            mov: mv
         })
     }
 }
