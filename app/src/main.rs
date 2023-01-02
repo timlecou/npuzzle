@@ -8,13 +8,14 @@ fn main() -> Result<()> {
     if args.len() != 2 {
         bail!("\nWrong number of arguments provided\n\ncargo run -- <filename>\n");
     }
-    let mut puzzle: NPuzzle = NPuzzle::new(&args[1])?;
+    let puzzle: NPuzzle = NPuzzle::new(&args[1])?;
 
     println!("Current state:");
     puzzle.print_current_state();
     println!("\nGoal:");
     puzzle.print_goal();
     println!("\n");
-    puzzle.solve();
+    puzzle.solve()?;
+    //Hamming Distance/Misplaced Tiles
     Ok(())
 }

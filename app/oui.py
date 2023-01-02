@@ -1,140 +1,120 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-# vim: ts=4 sw=4 et ai ff=unix ft=python nowrap
-#
-# Program: npuzzle.py
-#
-# Description: Solves the N-Puzzle Sliding Block Problem.
-#
-# Usage: python npuzzle.py.
-#
-# License: GNU GPL Version 2.0. Please refer www.gnu.org.
+class Node:
+    def __init__(self,data,level,fval):
+        """ Initialize the node with the data, level of the node and the calculated fvalue """
+        self.data = data
+        self.level = level
+        self.fval = fval
 
-import random
-
-
-class State:
-
-    def __init__(self, nsize):
-        """Initialze the n-puzzle problem, with n-size value, tsize the total nodes and initial the goal state from n.
-        """
-
-        self.nsize = nsize
-        self.tsize = pow(self.nsize, 2)
-        self.goal = list(range(1, self.tsize))
-        self.goal.append(0)
-
-    def printst(self, st):
-        """Print the list in a Matrix Format."""
-
-        for (index, value) in enumerate(st):
-            print(' %s ' % value, end=' ') 
-            if index in [x for x in range(self.nsize - 1, self.tsize, 
-                         self.nsize)]:
-                print() 
-        print() 
-
-    def getvalues(self, key):
-        """Utility function to gather the Free Motions at various key positions in the Matrix."""
-
-        values = [1, -1, self.nsize, -self.nsize]
-        valid = []
-        for x in values:
-            if 0 <= key + x < self.tsize:
-                if x == 1 and key in range(self.nsize - 1, self.tsize, 
-                        self.nsize):
-                    continue
-                if x == -1 and key in range(0, self.tsize, self.nsize):
-                    continue
-                valid.append(x)
-        return valid
-
-    def expand(self, st):
-        """Provide the list of next possible states from current state."""
-
-        pexpands = {}
-        for key in range(self.tsize):
-            pexpands[key] = self.getvalues(key)
-        pos = st.index(0)
-        moves = pexpands[pos]
-        expstates = []
-        for mv in moves:
-            nstate = st[:]
-            (nstate[pos + mv], nstate[pos]) = (nstate[pos], nstate[pos + 
-                    mv])
-            expstates.append(nstate)
-        return expstates
-
-    def one_of_poss(self, st):
-        """Choose one of the possible states."""
-
-        exp_sts = self.expand(st)
-        rand_st = random.choice(exp_sts)
-        return rand_st
-
-    def start_state(self, seed=1000):
-        """Determine the Start State of the Problem."""
-
-        start_st = (self.goal)[:]
-        for sts in range(seed):
-            start_st = self.one_of_poss(start_st)
-        return start_st
-
-    def goal_reached(self, st):
-        """Check if the Goal Reached or Not."""
-
-        return st == self.goal
-
-    def manhattan_distance(self, st):
-        """Calculate the Manhattan Distances of the particular State.
-           Manhattan distances are calculated as Total number of Horizontal and Vertical moves required by the values in the current state to reach their position in the Goal State.
-        """
-
-        mdist = 0
-        for node in st:
-            if node != 0:
-                gdist = abs(self.goal.index(node) - st.index(node))
-                (jumps, steps) = (gdist // self.nsize, gdist % self.nsize)
-                mdist += jumps + steps
-        return mdist
-
-    def huristic_next_state(self, st):
-        """This is the Huristic Function. It determines the next state to follow and uses Mahattan distances method as the huristics. This this determined way, a A* approach for path finding is used. 
-If more than one path have same manhattan distance, then a random choice of one of them is analyzed and carried forward. If not best path, randomness to providethe other choice is relied upon. No Depth First search is Used."""
-
-        exp_sts = self.expand(st)
-        # print("--------start--------")
-        # for e in exp_sts:
-        #     self.printst(e)
-        # print("----------end--------")
-        mdists = []
-        for st in exp_sts:
-            mdists.append(self.manhattan_distance(st))
-        mdists.sort()
-        short_path = mdists[0]
-        if mdists.count(short_path) > 1:
-            least_paths = [st for st in exp_sts if self.manhattan_distance(st) == short_path]
-            return random.choice(least_paths)
+    def generate_child(self):
+        """ Generate child nodes from the given node by moving the blank space
+            either in the four directions {up,down,left,right} """
+        x,y = self.find(self.data,'_')
+        """ val_list contains position values for moving the blank space in either of
+            the 4 directions [up,down,left,right] respectively. """
+        val_list = [[x,y-1],[x,y+1],[x-1,y],[x+1,y]]
+        children = []
+        for i in val_list:
+            child = self.shuffle(self.data,x,y,i[0],i[1])
+            if child is not None:
+                child_node = Node(child,self.level+1,0)
+                children.append(child_node)
+        return children
+        
+    def shuffle(self,puz,x1,y1,x2,y2):
+        """ Move the blank space in the given direction and if the position value are out
+            of limits the return None """
+        if x2 >= 0 and x2 < len(self.data) and y2 >= 0 and y2 < len(self.data):
+            temp_puz = []
+            temp_puz = self.copy(puz)
+            temp = temp_puz[x2][y2]
+            temp_puz[x2][y2] = temp_puz[x1][y1]
+            temp_puz[x1][y1] = temp
+            return temp_puz
         else:
-            for st in exp_sts:
-                if self.manhattan_distance(st) == short_path:
-                    return st
+            return None
+            
 
-    def solve_it(self, st):
-        while not self.goal_reached(st):
-            st = self.huristic_next_state(st)
-            self.printst(st)
+    def copy(self,root):
+        """ Copy function to create a similar matrix of the given node"""
+        temp = []
+        for i in root:
+            t = []
+            for j in i:
+                t.append(j)
+            temp.append(t)
+        return temp    
+            
+    def find(self,puz,x):
+        """ Specifically used to find the position of the blank space """
+        for i in range(0,len(self.data)):
+            for j in range(0,len(self.data)):
+                if puz[i][j] == x:
+                    return i,j
 
 
-if __name__ == '__main__':
-    print('N-Puzzle Solver!')
-    print(10 * '-')
-    state = State(3)
-    print('The Starting State is:')
-    start = state.start_state(5)
-    state.printst(start)
-    print('The Goal State should be:')
-    state.printst(state.goal)
-    print('Here it Goes:')
-    state.printst(start)
-    state.solve_it(start)
+class Puzzle:
+    def __init__(self,size):
+        """ Initialize the puzzle size by the specified size,open and closed lists to empty """
+        self.n = size
+        self.open = []
+        self.closed = []
+
+    def accept(self):
+        """ Accepts the puzzle from the user """
+        puz = []
+        for i in range(0,self.n):
+            temp = input().split(" ")
+            puz.append(temp)
+        return puz
+
+    def f(self,start,goal):
+        """ Heuristic Function to calculate hueristic value f(x) = h(x) + g(x) """
+        return self.h(start.data,goal)+start.level
+
+    def h(self,start,goal):
+        """ Calculates the different between the given puzzles """
+        temp = 0
+        for i in range(0,self.n):
+            for j in range(0,self.n):
+                if start[i][j] != goal[i][j] and start[i][j] != '_':
+                    temp += 1
+        return temp
+        
+
+    def process(self):
+        """ Accept Start and Goal Puzzle state"""
+        print("Enter the start state matrix \n")
+        start = self.accept()
+        print("Enter the goal state matrix \n")        
+        goal = self.accept()
+
+        start = Node(start,0,0)
+        start.fval = self.f(start,goal)
+        """ Put the start node in the open list"""
+        self.open.append(start)
+        print("\n\n")
+        while True:
+            cur = self.open[0]
+            print("")
+            print("  | ")
+            print("  | ")
+            print(" \\\'/ \n")
+            for i in cur.data:
+                for j in i:
+                    print(j,end=" ")
+                print("")
+            """ If the difference between current and goal node is 0 we have reached the goal node"""
+            if(self.h(cur.data,goal) == 0):
+                break
+            for i in cur.generate_child():
+                i.fval = self.f(i,goal)
+                self.open.append(i)
+            self.closed.append(cur)
+            del self.open[0]
+
+            """ sort the opne list based on f value """
+            self.open.sort(key = lambda x:x.fval,reverse=False)
+
+
+puz = Puzzle(3)
+puz.process()

@@ -1,7 +1,7 @@
 use anyhow::{Result, Ok};
 use std::cmp::{Ord, Ordering};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct State {
     pub size: usize,
     pub number_amount: usize,
