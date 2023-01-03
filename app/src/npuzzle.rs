@@ -266,7 +266,7 @@ impl NPuzzle {
     //     Ok(())
     // }
 
-    fn pop_and_return_smallest_f(&self, opened: &mut Vec<State>, depth: u16) -> Result<State> {
+    fn pop_and_return_smallest_f(&self, opened: &mut Vec<State>, both: &Vec<Vec<u16>>, depth: u16) -> Result<State> {
         let mut shortest_distance_idx: usize = 0;
         let mut shortest_distance: u32 = 1000000;
         let mut state: State = State::new(&vec![])?;
@@ -275,9 +275,11 @@ impl NPuzzle {
             if st.distance == 0 {
                 st.distance = depth as u32  + self.manhattan_distance(&st.puzzle)?;
             }
-            if st.distance < shortest_distance {
-                shortest_distance = st.distance;
-                shortest_distance_idx = idx;
+            if !both.contains(&st.puzzle) {
+                if st.distance < shortest_distance {
+                    shortest_distance = st.distance;
+                    shortest_distance_idx = idx;
+                }
             }
         }
         for (idx, st) in opened.iter().enumerate() {
@@ -293,23 +295,23 @@ impl NPuzzle {
     pub fn solve2(&self) -> Result<Vec<Vec<u16>>> {
         let mut opened: Vec<State> = Vec::new();
         let mut closed: Vec<Vec<u16>> = Vec::new();
-        // let mut both: Vec<Vec<u16>> = Vec::new();
+        let mut both: Vec<Vec<u16>> = Vec::new();
         let mut successors: Vec<State>;
         let mut smallest_f: State;
         let mut depth: u16 = 0;
 
         opened.push(State::new(&self.puzzle.to_vec())?);
-        // closed.push(self.puzzle.to_vec());
-        // both.push(self.puzzle.to_vec());
+        closed.push(self.puzzle.to_vec());
+        both.push(self.puzzle.to_vec());
         while !opened.is_empty() {
-            smallest_f = self.pop_and_return_smallest_f(&mut opened, depth)?;
+            // println!("size: {}", opened.len());
+            smallest_f = self.pop_and_return_smallest_f(&mut opened, &both, depth)?;
             closed.push(smallest_f.puzzle);
-            // both.push(smallest_f.puzzle);
-            self.print_u16_vec(closed.last().expect("Error"));
+            // self.print_u16_vec(closed.last().expect("Error"));
             if self.has_reached_goal2(closed.last().expect("Error when reaching closed vec last element")) {
                 return Ok(closed);
             }
-            opened.clear();
+            // opened.clear();
             successors = self.get_successors(closed.last().expect("Error when reaching closed vec last element"))?;
             for successor in successors {
                 if self.has_reached_goal(&successor) {
@@ -317,13 +319,13 @@ impl NPuzzle {
                     return Ok(closed);
                 }
                 else if !closed.contains(&successor.puzzle) {
+                    both.push(successor.puzzle.clone());
                     opened.push(successor);
-                    // both.push(successor.puzzle);
                 }
             }
             depth += 1;
             // thread::sleep(time::Duration::from_millis(200));
-            println!("");
+            // println!("");
         }
         println!("pas trouvé");
         Ok(closed)
