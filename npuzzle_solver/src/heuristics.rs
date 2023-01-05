@@ -7,7 +7,7 @@ use crate::solver::{ Board, NpuzzleSolver };
 pub enum Heuristics {
     ManhattanDistance,
     MisplacedTiles,
-    EuclidianDistanceSquared
+    EuclidianDistance
 }
 
 impl Display for Heuristics {
@@ -15,7 +15,7 @@ impl Display for Heuristics {
         write!(f, "{}", match self {
             Heuristics::ManhattanDistance => "manhattan distance",
             Heuristics::MisplacedTiles => "misplaced tiles",
-            Heuristics::EuclidianDistanceSquared => "euclidian distance squared"
+            Heuristics::EuclidianDistance => "euclidian distance squared"
         })
     }
 }
@@ -29,7 +29,7 @@ impl Heuristic for Heuristics {
         match *self {
             Heuristics::ManhattanDistance => ManhattanDistanceHeuristic.run_heuristic(puzzle, target, size),
             Heuristics::MisplacedTiles => MisplacedTilesHeuristic.run_heuristic(puzzle, target, size),
-            Heuristics::EuclidianDistanceSquared => EuclidianDistanceSquaredHeuristic.run_heuristic(puzzle, target, size)
+            Heuristics::EuclidianDistance => EuclidianDistanceHeuristic.run_heuristic(puzzle, target, size)
         }
     }
 }
@@ -51,7 +51,7 @@ impl Heuristic for ManhattanDistanceHeuristic {
 
 struct MisplacedTilesHeuristic;
 impl Heuristic for MisplacedTilesHeuristic {
-    fn run_heuristic(&self, puzzle: &Board, target: &Board, size: usize) -> usize {
+    fn run_heuristic(&self, puzzle: &Board, target: &Board, _size: usize) -> usize {
         puzzle
         .inner()
         .iter()
@@ -61,9 +61,16 @@ impl Heuristic for MisplacedTilesHeuristic {
     }
 }
 
-struct EuclidianDistanceSquaredHeuristic;
-impl Heuristic for EuclidianDistanceSquaredHeuristic {
+struct EuclidianDistanceHeuristic;
+impl Heuristic for EuclidianDistanceHeuristic {
     fn run_heuristic(&self, puzzle: &Board, target: &Board, size: usize) -> usize {
-        0
+        let mut distance: usize = 0;
+        for (idx, nb) in puzzle.inner().iter().enumerate() {
+            let target_idx = target.inner().iter().position(|&n| n == *nb).unwrap();
+            let (puzzle_x, puzzle_y) = (idx % size, idx / size);
+            let (target_x, target_y) = (target_idx % size, target_idx / size);
+            distance += (((target_y as isize - puzzle_y as isize).pow(2) + (target_x as isize - puzzle_x as isize).pow(2)) as f32).sqrt() as usize;
+        }
+        distance
     }
 }

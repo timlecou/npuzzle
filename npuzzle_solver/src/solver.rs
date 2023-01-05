@@ -3,9 +3,17 @@ use std::fmt::Display;
 use std::fs::File;
 use std::io::{prelude::*, BufReader};
 
+use crate::heuristics::Heuristics;
+
 
 #[derive(Debug)]
 pub struct Board(pub Vec<u16>);
+
+pub struct NpuzzleResults {
+    pub states: Option<Vec<Board>>,
+    pub max_states_in_memory: usize,
+    pub max_states_in_opened: usize
+}
 
 impl Display for Board {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -38,6 +46,27 @@ pub struct NpuzzleSolver {
     pub start: Board,
     pub target: Board,
     pub size: usize
+}
+
+impl Display for NpuzzleResults {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match &self.states {
+            Some(states) => {
+                for st in states {
+                    write!(f, "{}", st)?;
+                    write!(f, "    |")?;
+                    write!(f, "    |")?;
+                    write!(f, "  \\ | /")?;
+                    write!(f, "   \\|/")?;
+                }
+                write!(f, "Complexity in time: {}", self.max_states_in_opened)?;
+                write!(f, "Complexity in size: {}", self.max_states_in_memory)?;
+                write!(f, "Number of moves: {}", states.len())?;
+                Ok(())
+            },
+            None => write!(f, "No solution found !")
+        }
+    }
 }
 
 impl Board {
@@ -113,5 +142,46 @@ impl NpuzzleSolver {
             target: target,
             size: size
         })
+    }
+
+    pub fn solve_astar(&self, heuristic: Heuristics) -> NpuzzleResults {
+        let mut opened: Vec<&Board> = Vec::new();
+
+        opened.push(&self.start);
+
+        NpuzzleResults { states: None, max_states_in_memory: 0, max_states_in_opened: 0 }
+    }
+
+    pub fn is_solvable(puzzle: &Board, size: usize) -> bool {
+        let inversions: usize = NpuzzleSolver::count_inversions(puzzle);
+        let blank_square_row = puzzle
+            .inner()
+            .iter()
+            .position(|nb| nb == &0)
+            .unwrap() / size;
+
+        if size % 2 == 0 {
+            if (inversions + blank_square_row) % 2 == 1 {
+                return true;
+            }
+        } else if inversions % 2 == 0 {
+            return true;
+        }
+        false
+    }
+
+    pub fn count_inversions(puzzle: &Board) -> usize {
+        let mut inversions: usize = 0;
+
+        for (idx_1, nb_1) in puzzle.inner().iter().enumerate() {
+            if nb_1 != &0 {
+                for nb_2 in puzzle.inner().iter().skip(idx_1 + 1) {
+                    if nb_2 != &0 && nb_2 < nb_1 {
+                        inversions += 1;
+                    }
+                }
+            }
+        }
+        inversions
     }
 }
