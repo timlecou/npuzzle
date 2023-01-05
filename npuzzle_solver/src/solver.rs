@@ -23,6 +23,16 @@ impl Display for Board {
     }
 }
 
+impl Board {
+    pub fn inner(&self) -> &Vec<u16> {
+        &self.0
+    }
+
+    pub fn inner_mut(&mut self) -> &mut Vec<u16> {
+        &mut self.0
+    }
+}
+
 #[derive(Debug)]
 pub struct NpuzzleSolver {
     pub start: Board,
@@ -53,10 +63,13 @@ impl NpuzzleSolver {
                                 .split_whitespace()
                                 .filter_map(|w| w.parse().ok())
                                 .collect();
-                            if numbers.len() == 1 && size == 0 {
-                                size = numbers[0] as usize;
-                            }
-                            else if numbers.len() > 1 {
+                            if numbers.len() == 1 {
+                                if size == 0 && puzzle.0.len() == 0 {
+                                    size = numbers[0] as usize;
+                                } else {
+                                    bail!("Too many sizes provided in file");
+                                }
+                            } else if numbers.len() == size {
                                 puzzle.0.append(&mut numbers);
                             }
                         }
@@ -70,6 +83,22 @@ impl NpuzzleSolver {
             Ok((size, puzzle))
         }
 
+        pub fn check_puzzle_conformity(puzzle: &Board, size: usize) -> Result<()> {
+            let mut i: u16 = 0;
+            
+            if size * size != puzzle.0.len() {
+                bail!("\n\nSize provided doesn't match the puzzle amount of numbers\n\nsize provided: {}\namount of number: {}\n\n", size, puzzle.0.len());
+            }
+        
+            while (i as usize) < puzzle.0.len() {
+                if puzzle.0.contains(&i) == false {
+                    bail!("Missing number in puzzle\n\nMissing: {}\n\n", i);
+                }
+                i += 1;
+            }
+            Ok(())
+        }
+
         let (size, puzzle) = parse_file(filename)?;
         let mut target: Board = Board::new(0);
 
@@ -77,6 +106,8 @@ impl NpuzzleSolver {
         target.0.sort();
         target.0.remove(0);
         target.0.push(0);
+
+        check_puzzle_conformity(&puzzle, size)?;
         Ok(Self {
             start: puzzle,
             target: target,
