@@ -64,6 +64,20 @@ fn test_get_possible_moves_4() -> Result<()> {
     Ok(())
 }
 
+#[test]
+fn test_get_possible_moves_5() -> Result<()> {
+    let solver: NpuzzleSolver = NpuzzleSolver::from_file(&String::from("tests/puzzles/npuzzle-3-4.txt"))?;
+    assert_eq!(NpuzzleSolver::get_possible_moves(
+        &solver.size,
+        solver.start
+        .inner()
+        .iter()
+        .position(|nb| nb == &0)
+        .unwrap()),
+        [None, Some(3), Some(7), None]);
+    Ok(())
+}
+
 /**
  * 
  * get_successors

@@ -14,7 +14,7 @@ use std::{
     cmp::Ordering
 };
 
-use crate::heuristics::Heuristics;
+use crate::heuristics::{Heuristics, Heuristic};
 
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
@@ -93,14 +93,13 @@ impl Display for NpuzzleResults {
         match &self.states {
             Some(states) => {
                 for st in states {
-                    write!(f, "{}", st)?;
-                    write!(f, "    |")?;
-                    write!(f, "    |")?;
-                    write!(f, "  \\ | /")?;
-                    write!(f, "   \\|/")?;
+                    write!(f, "{}\n\n", st)?;
+                    write!(f, "    |\n")?;
+                    write!(f, "    |\n")?;
+                    write!(f, "   \\|/\n\n")?;
                 }
-                write!(f, "Complexity in time: {}", self.max_states_in_opened)?;
-                write!(f, "Complexity in size: {}", self.max_states_in_memory)?;
+                write!(f, "Complexity in time: {}\n", self.max_states_in_opened)?;
+                write!(f, "Complexity in size: {}\n", self.max_states_in_memory)?;
                 write!(f, "Number of moves: {}", states.len())?;
                 Ok(())
             },
@@ -201,14 +200,14 @@ impl NpuzzleSolver {
                 }
             },
             {
-                if (empty_idx + 1) % size > 0 {
+                if empty_idx % size != size -1 {
                     Some(empty_idx + 1)
                 } else {
                     None
                 }
             },
             {
-                if (empty_idx + 1) / size > 0 {
+                if empty_idx / size != size - 1 {
                     Some(empty_idx + size)
                 } else {
                     None
@@ -236,7 +235,6 @@ impl NpuzzleSolver {
     pub fn solve_astar(&self, heuristic: Heuristics) -> NpuzzleResults {
         let mut to_see = BinaryHeap::new();
         let mut states_in_opened: usize = 0;
-        let mut states_in_memory: usize = 0;
         to_see.push(SmallestCostHolder {
             estimated_cost: 0,
             cost: 0,
@@ -249,11 +247,19 @@ impl NpuzzleSolver {
                 let (node, &(_, c)) = parents.get_index(index).unwrap();
                 if node == &self.target {
                     //reverse path
-                    let reversed_path: Vec<Board> = Vec::new();
+
+                    let mut reversed_path = Vec::new();
+                    let mut idx = index;
+
+                    while let Some((node, &(ind, _))) = parents.get_index(idx) {
+                        idx = ind;
+                        reversed_path.push(node.clone());
+                    }
+                    reversed_path.reverse();
                     return NpuzzleResults {
                         states: Some(reversed_path),
                         max_states_in_opened: states_in_opened,
-                        max_states_in_memory: states_in_memory
+                        max_states_in_memory: parents.len()
                     };
                 }
                 if cost > c {
@@ -261,11 +267,39 @@ impl NpuzzleSolver {
                 }
                 NpuzzleSolver::get_successors(node, self.size)
             };
+
+            for successor in successors {
+                let new_cost = cost + 1;
+                let h: usize;  //heuristic
+                let n: usize;  //successor index
+                match parents.entry(successor) {
+                    Entry::Vacant(e) => {
+                        h = heuristic.run_heuristic(e.key(), &self.target, self.size);
+                        n = e.index();
+                        e.insert((index, new_cost));
+                    },
+                    Entry::Occupied(mut e) => {
+                        if e.get().1 > new_cost {
+                            h = heuristic.run_heuristic(e.key(), &self.target, self.size);
+                        n = e.index();
+                        e.insert((index, new_cost));
+                        } else {
+                            continue ;
+                        }
+                    }
+                }
+                to_see.push(SmallestCostHolder {
+                    estimated_cost: new_cost + h,
+                    cost: new_cost,
+                    index: n,
+                });
+                states_in_opened += 1;
+            }
         }
         NpuzzleResults {
             states: None,
             max_states_in_opened: states_in_opened,
-            max_states_in_memory: states_in_memory
+            max_states_in_memory: parents.len()
         }
     }
 

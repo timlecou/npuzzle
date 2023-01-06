@@ -8,10 +8,10 @@ fn main() -> Result<()> {
         bail!("\nWrong number of arguments provided\n\ncargo run -- <filename>\n");
     }
     let solver: NpuzzleSolver = NpuzzleSolver::from_file(&args[0])?;
-
-    if !NpuzzleSolver::is_solvable(&solver.start, solver.size) {
-        bail!("This puzzle is unsolvable:\n{}", solver.start);
-    }
+    // todo!("Random puzzle generation");
+    // if !NpuzzleSolver::is_solvable(&solver.start, solver.size) {
+    //     bail!("This puzzle is unsolvable:\n{}", solver.start);
+    // }
 
     let results = solver.solve_astar(npuzzle_solver::heuristics::Heuristics::ManhattanDistance);
     println!("{}", results);
