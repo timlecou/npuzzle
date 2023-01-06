@@ -1,13 +1,53 @@
 use anyhow::{ Result, bail };
-use std::fmt::Display;
-use std::fs::File;
-use std::io::{prelude::*, BufReader};
+use indexmap::{
+    map::Entry,
+    IndexMap
+};
+use std::{
+    collections::BinaryHeap,
+    fmt::Display,
+    fs::File,
+    io::{
+        prelude::*,
+        BufReader
+    },
+    cmp::Ordering
+};
 
 use crate::heuristics::Heuristics;
 
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub struct Board(pub Vec<u16>);
+
+pub struct SmallestCostHolder {
+    estimated_cost: usize,
+    cost: usize,
+    index: usize,
+}
+
+impl PartialEq for SmallestCostHolder {
+    fn eq(&self, other: &Self) -> bool {
+        self.estimated_cost.eq(&other.estimated_cost) && self.cost.eq(&other.cost)
+    }
+}
+
+impl Eq for SmallestCostHolder {}
+
+impl PartialOrd for SmallestCostHolder {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for SmallestCostHolder {
+    fn cmp(&self, other: &Self) -> Ordering {
+        match other.estimated_cost.cmp(&self.estimated_cost) {
+            Ordering::Equal => other.cost.cmp(&other.cost),
+            s => s
+        }
+    }
+}
 
 pub struct NpuzzleResults {
     pub states: Option<Vec<Board>>,
@@ -144,12 +184,89 @@ impl NpuzzleSolver {
         })
     }
 
+    pub fn get_possible_moves(size: &usize, empty_idx: usize) -> [Option<usize>; 4] {
+        [
+            {
+                if empty_idx % size > 0 {
+                    Some(empty_idx - 1)
+                } else {
+                    None
+                }
+            },
+            {
+                if empty_idx / size > 0 {
+                    Some(empty_idx - size)
+                } else {
+                    None
+                }
+            },
+            {
+                if (empty_idx + 1) % size > 0 {
+                    Some(empty_idx + 1)
+                } else {
+                    None
+                }
+            },
+            {
+                if (empty_idx + 1) / size > 0 {
+                    Some(empty_idx + size)
+                } else {
+                    None
+                }
+            }
+        ]
+    }
+
+    pub fn get_successors(puzzle: &Board, size: usize) -> Vec<Board> {
+        let empty_idx: usize = puzzle.inner().iter().position(|nb| nb == &0).unwrap();
+        let moves = NpuzzleSolver::get_possible_moves(&size, empty_idx);
+
+        moves
+            .iter()
+            .copied()
+            .filter_map(|s| s)
+            .map(|mv| {
+                let mut board: Board = puzzle.clone();
+                board.inner_mut().swap(empty_idx, mv);
+                board
+            })
+            .collect()
+    }
+
     pub fn solve_astar(&self, heuristic: Heuristics) -> NpuzzleResults {
-        let mut opened: Vec<&Board> = Vec::new();
-
-        opened.push(&self.start);
-
-        NpuzzleResults { states: None, max_states_in_memory: 0, max_states_in_opened: 0 }
+        let mut to_see = BinaryHeap::new();
+        let mut states_in_opened: usize = 0;
+        let mut states_in_memory: usize = 0;
+        to_see.push(SmallestCostHolder {
+            estimated_cost: 0,
+            cost: 0,
+            index: 0,
+        });
+        let mut parents: IndexMap<Board, (usize, usize)> = IndexMap::default();
+        parents.insert(self.start.clone(), (usize::max_value(), 0));
+        while let Some(SmallestCostHolder { cost, index, .. }) = to_see.pop() {
+            let successors = {
+                let (node, &(_, c)) = parents.get_index(index).unwrap();
+                if node == &self.target {
+                    //reverse path
+                    let reversed_path: Vec<Board> = Vec::new();
+                    return NpuzzleResults {
+                        states: Some(reversed_path),
+                        max_states_in_opened: states_in_opened,
+                        max_states_in_memory: states_in_memory
+                    };
+                }
+                if cost > c {
+                    continue ;
+                }
+                NpuzzleSolver::get_successors(node, self.size)
+            };
+        }
+        NpuzzleResults {
+            states: None,
+            max_states_in_opened: states_in_opened,
+            max_states_in_memory: states_in_memory
+        }
     }
 
     pub fn is_solvable(puzzle: &Board, size: usize) -> bool {
