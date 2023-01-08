@@ -3,6 +3,12 @@ use indexmap::{
     map::Entry,
     IndexMap
 };
+use rand::{
+    thread_rng,
+    seq::{
+        SliceRandom
+    }
+};
 use std::{
     collections::BinaryHeap,
     fmt::Display,
@@ -176,6 +182,24 @@ impl NpuzzleSolver {
         target.0.push(0);
 
         check_puzzle_conformity(&puzzle, size)?;
+        Ok(Self {
+            start: puzzle,
+            target: target,
+            size: size
+        })
+    }
+
+    pub fn generate_random(size: usize) -> Result<NpuzzleSolver> {
+        let mut puzzle: Board = Board::new(0);
+        let mut target: Board = Board::new(0);
+
+        puzzle.0 = (0..(size * size) as u16).collect();
+        puzzle.0.shuffle(&mut thread_rng());
+
+        target.0 = puzzle.0.clone();
+        target.0.sort();
+        target.0.remove(0);
+        target.0.push(0);
         Ok(Self {
             start: puzzle,
             target: target,

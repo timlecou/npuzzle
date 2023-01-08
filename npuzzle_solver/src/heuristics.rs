@@ -1,9 +1,11 @@
 
 use std::fmt::Display;
-use crate::solver::{ Board, NpuzzleSolver };
+use std::str::FromStr;
+use crate::solver::{ Board };
+use anyhow::{Result, Error, bail};
 
 
-
+#[derive(Debug)]
 pub enum Heuristics {
     ManhattanDistance,
     MisplacedTiles,
@@ -30,6 +32,18 @@ impl Heuristic for Heuristics {
             Heuristics::ManhattanDistance => ManhattanDistanceHeuristic.run_heuristic(puzzle, target, size),
             Heuristics::MisplacedTiles => MisplacedTilesHeuristic.run_heuristic(puzzle, target, size),
             Heuristics::EuclidianDistance => EuclidianDistanceHeuristic.run_heuristic(puzzle, target, size)
+        }
+    }
+}
+
+impl FromStr for Heuristics {
+    type Err = Error;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "manhattan" => Ok(Heuristics::ManhattanDistance),
+            "misplaced" => Ok(Heuristics::MisplacedTiles),
+            "euclidian" => Ok(Heuristics::EuclidianDistance),
+            _ => bail!("Invalid heuristic")
         }
     }
 }
