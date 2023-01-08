@@ -7,10 +7,7 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.68"
-env_logger = "0.10.0"
 indexmap = "1.9.2"
 rand = "0.8.5"
 structopt = "0.3.26"
 thiserror = "1.0.38"
-wgpu = "0.14.2"
-winit = "0.27.5"
