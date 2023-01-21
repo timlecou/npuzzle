@@ -174,19 +174,47 @@ impl NpuzzleSolver {
         }
 
         let (size, puzzle) = parse_file(filename)?;
-        let mut target: Board = Board::new(0);
-
-        target.0 = puzzle.0.clone();
-        target.0.sort();
-        target.0.remove(0);
-        target.0.push(0);
 
         check_puzzle_conformity(&puzzle, size)?;
         Ok(Self {
             start: puzzle,
-            target: target,
+            target: NpuzzleSolver::snail(size),
             size: size
         })
+    }
+
+    pub fn snail(size: usize) -> Board
+    {
+        let mut target: Board = Board::new(0);
+        let mut x = 0;
+        let mut y = 0;
+        let mut direction = 0;
+
+        target.0 = vec![0; size * size];
+        for i in 1..(size * size) {
+            target.0[y * size + x] = i as u16;
+
+            let change_dir = match direction {
+                0 if x == size - 1 || target.0[(y + 0) * size + (x + 1)] != 0 => true,
+                1 if y == size - 1 || target.0[(y + 1) * size + (x + 0)] != 0 => true,
+                2 if x == 0 || target.0[(y + 0) * size + (x - 1)] != 0 => true,
+                3 if y == 0 || target.0[(y - 1) * size + (x + 0)] != 0 => true,
+                _ => false,
+            };
+
+            if change_dir {
+                direction = (direction + 1) % 4;
+            }
+
+            match direction {
+                0 => x += 1,
+                1 => y += 1,
+                2 => x -= 1,
+                3 => y -= 1,
+                _ => unreachable!(),
+            }
+        }
+        target
     }
 
     pub fn generate_random(size: usize) -> Result<NpuzzleSolver> {

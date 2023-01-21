@@ -21,7 +21,7 @@ fn test_manhattan_distance_heuristic_three_sized_puzzle() -> Result<()> {
 fn test_manhattan_distance_heuristic_three_sized_puzzle_2() -> Result<()> {
     let solver = NpuzzleSolver::from_file(&String::from("tests/puzzles/npuzzle-3-3.txt"))?;
     let distance = Heuristics::ManhattanDistance.run_heuristic(&solver.start, &solver.target, solver.size);
-    assert_eq!(distance, 18);
+    assert_eq!(distance, 16);
     Ok(())
 }
 
@@ -29,7 +29,7 @@ fn test_manhattan_distance_heuristic_three_sized_puzzle_2() -> Result<()> {
 fn test_manhattan_distance_heuristic_five_sized_puzzle_1() -> Result<()> {
     let solver = NpuzzleSolver::from_file(&String::from("tests/puzzles/npuzzle-5-0.txt"))?;
     let distance = Heuristics::ManhattanDistance.run_heuristic(&solver.start, &solver.target, solver.size);
-    assert_eq!(distance, 76);
+    assert_eq!(distance, 86);
     Ok(())
 }
 
@@ -37,7 +37,7 @@ fn test_manhattan_distance_heuristic_five_sized_puzzle_1() -> Result<()> {
 fn test_manhattan_distance_heuristic_two_sized_puzzle_1() -> Result<()> {
     let solver = NpuzzleSolver::from_file(&String::from("tests/puzzles/npuzzle-2-0.txt"))?;
     let distance = Heuristics::ManhattanDistance.run_heuristic(&solver.start, &solver.target, solver.size);
-    assert_eq!(distance, 6);
+    assert_eq!(distance, 4);
     Ok(())
 }
 
@@ -52,7 +52,7 @@ fn test_manhattan_distance_heuristic_two_sized_puzzle_1() -> Result<()> {
 fn test_misplaced_tiles_heuristic_three_sized_puzzle_1() -> Result<()> {
     let solver = NpuzzleSolver::from_file(&String::from("tests/puzzles/npuzzle-3-1.txt"))?;
     let distance = Heuristics::MisplacedTiles.run_heuristic(&solver.start, &solver.target, solver.size);
-    assert_eq!(distance, 8);
+    assert_eq!(distance, 7);
     Ok(())
 }
 
@@ -60,7 +60,7 @@ fn test_misplaced_tiles_heuristic_three_sized_puzzle_1() -> Result<()> {
 fn test_misplaced_tiles_heuristic_three_sized_puzzle_2() -> Result<()> {
     let solver = NpuzzleSolver::from_file(&String::from("tests/puzzles/npuzzle-3-3.txt"))?;
     let distance = Heuristics::MisplacedTiles.run_heuristic(&solver.start, &solver.target, solver.size);
-    assert_eq!(distance, 9);
+    assert_eq!(distance, 8);
     Ok(())
 }
 
@@ -98,7 +98,7 @@ fn test_euclidian_distance_heuristic_three_sized_puzzle_1() -> Result<()> {
 fn test_euclidian_distance_heuristic_three_sized_puzzle_2() -> Result<()> {
     let solver = NpuzzleSolver::from_file(&String::from("tests/puzzles/npuzzle-3-3.txt"))?;
     let distance = Heuristics::EuclidianDistance.run_heuristic(&solver.start, &solver.target, solver.size);
-    assert_eq!(distance, 13);
+    assert_eq!(distance, 11);
     Ok(())
 }
 
@@ -106,7 +106,7 @@ fn test_euclidian_distance_heuristic_three_sized_puzzle_2() -> Result<()> {
 fn test_euclidian_distance_heuristic_five_sized_puzzle_1() -> Result<()> {
     let solver = NpuzzleSolver::from_file(&String::from("tests/puzzles/npuzzle-5-0.txt"))?;
     let distance = Heuristics::EuclidianDistance.run_heuristic(&solver.start, &solver.target, solver.size);
-    assert_eq!(distance, 51);
+    assert_eq!(distance, 63);
     Ok(())
 }
 
