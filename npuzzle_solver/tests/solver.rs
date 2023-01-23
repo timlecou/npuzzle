@@ -50,3 +50,10 @@ fn test_is_solvable_with_four_sized_solvable() -> Result<()> {
     assert_eq!(NpuzzleSolver::is_solvable(&solver.start, 4), true);
     Ok(())
 }
+
+#[test]
+fn test_count_distances_sum_with_three_sized_puzzle_1() -> Result<()> {
+    let solver = NpuzzleSolver::from_file(&String::from("tests/puzzles/npuzzle-4-1.txt"))?;
+    assert_eq!(NpuzzleSolver::count_distances_sum(&solver.start), 43);
+    Ok(())
+}

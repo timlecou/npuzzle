@@ -26,11 +26,11 @@ fn main() -> Result<()> {
     } else {
         bail!("You must provide either a filename or a number to generate a random puzzle")
     };
-    // if !NpuzzleSolver::is_solvable(&solver.start, solver.size) {
-    //     bail!("This puzzle is unsolvable:\n{}", solver.start);
-    // } else {
-    //     println!("Solving . . .");
-    // }
+    if !NpuzzleSolver::is_solvable(&solver.start, solver.size) {
+        bail!("This puzzle is unsolvable:\n{}", solver.start);
+    } else {
+        println!("Solving . . .");
+    }
 
     println!("{}", solver.solve_astar(args.heuristic));
     Ok(())

@@ -356,8 +356,28 @@ impl NpuzzleSolver {
     }
 
     pub fn is_solvable(puzzle: &Board, size: usize) -> bool {
-        let inversions: usize = NpuzzleSolver::count_inversions(puzzle);
-        let blank_square_row = puzzle
+        let mut computed_puzzle: Board = Board::new(0);
+        let mut target: Vec<u16> = (1..(size * size) as u16).collect();
+        target.push(0);
+        dbg!(&puzzle);
+        for nb in target.iter() {
+            if nb == &0 {
+                computed_puzzle.inner_mut().push((size * size) as u16 - 1);
+            // } else if nb == &((size * size) as u16 - 1) {
+            //     computed_puzzle.inner_mut().push(nb - 1);
+            } else {
+                computed_puzzle.inner_mut().push(
+                    (puzzle
+                    .inner()
+                    .iter()
+                    .position(|n| n == nb)
+                    .unwrap() + 1) as u16
+                );
+            }
+        }
+        dbg!(&computed_puzzle);
+        let inversions: usize = NpuzzleSolver::count_inversions(&computed_puzzle);
+        let blank_square_row = computed_puzzle
             .inner()
             .iter()
             .position(|nb| nb == &0)
